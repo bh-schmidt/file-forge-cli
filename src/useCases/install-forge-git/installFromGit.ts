@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { FileForgeData } from "file-forge";
+import { HyperForgeData } from "hyper-forge";
 import fs from 'fs-extra';
 import { cloneRepository } from "./internal/cloneRepository";
 import { getAvailableForges } from "./internal/getAvailableForges";
@@ -16,10 +16,10 @@ export interface InstallOptions {
 }
 
 export async function installFromGit(options: InstallOptions) {
-    let repository: FileForgeData.ClonedRepositories | undefined
+    let repository: HyperForgeData.ClonedRepositories | undefined
     let repositoryExists = false
     try {
-        const config = await FileForgeData.readConfig()
+        const config = await HyperForgeData.readConfig()
         repository = await cloneRepository(options, config)
         if (!repository) {
             return false
@@ -30,7 +30,7 @@ export async function installFromGit(options: InstallOptions) {
         const success = await installInternal(repository, config, options)
 
         if (!success) {
-            const path = FileForgeData.getGitForgesPath(repository.id)
+            const path = HyperForgeData.getGitForgesPath(repository.id)
             if (!repositoryExists && await fs.exists(path)) {
                 await fs.rm(path, { recursive: true })
             }
@@ -43,7 +43,7 @@ export async function installFromGit(options: InstallOptions) {
         }
 
         await deleteOldRepositories(config)
-        await FileForgeData.saveConfig(config)
+        await HyperForgeData.saveConfig(config)
 
         return true
     } catch (error) {
@@ -51,7 +51,7 @@ export async function installFromGit(options: InstallOptions) {
         console.log(error)
 
         if (repository) {
-            const path = FileForgeData.getGitForgesPath(repository.id)
+            const path = HyperForgeData.getGitForgesPath(repository.id)
             if (!repositoryExists && await fs.exists(path)) {
                 await fs.rm(path, { recursive: true })
             }
@@ -61,7 +61,7 @@ export async function installFromGit(options: InstallOptions) {
     }
 }
 
-async function installInternal(repository: FileForgeData.ClonedRepositories, config: FileForgeData.ConfigObject, options: InstallOptions) {
+async function installInternal(repository: HyperForgeData.ClonedRepositories, config: HyperForgeData.ConfigObject, options: InstallOptions) {
     const availableForges = await getAvailableForges(repository, config)
     if (availableForges.length == 0) {
         console.log(chalk.red('No available forges found in this repository.\n'))

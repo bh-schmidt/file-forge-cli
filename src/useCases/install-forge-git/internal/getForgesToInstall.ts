@@ -1,6 +1,6 @@
-import { FileForgeData } from "file-forge"
+import { HyperForgeData } from "hyper-forge"
 
-export async function getForgesToInstall(availableForges: FileForgeData.ForgeInfo[], forgeIds: string[] | undefined) {
+export async function getForgesToInstall(availableForges: HyperForgeData.ForgeInfo[], forgeIds: string[] | undefined) {
     if (!forgeIds) {
         return availableForges
     }

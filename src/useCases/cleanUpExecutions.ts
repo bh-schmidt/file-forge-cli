@@ -1,4 +1,4 @@
-import { executionsTempDir, FileForgeData } from 'file-forge'
+import { executionsTempDir, HyperForgeData } from 'hyper-forge'
 import fs from 'fs-extra'
 import { globStream } from 'glob'
 import { basename, join } from 'path'
@@ -55,8 +55,8 @@ async function cleanUpExecutions() {
 }
 
 async function cleanupRepositories() {
-    const gitPath = FileForgeData.getGitForgesPath()
-    const config = await FileForgeData.readConfig()
+    const gitPath = HyperForgeData.getGitForgesPath()
+    const config = await HyperForgeData.readConfig()
     const ids = new Set(config.repositories.map(e => e.id))
 
     const paths = globStream('*', {

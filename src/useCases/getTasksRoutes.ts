@@ -1,9 +1,10 @@
+import chalk from 'chalk'
 import { Command } from 'commander'
-import { FileForgeData, PromptsHelper } from 'file-forge'
+import { HyperForgeData } from 'hyper-forge'
 import { RouteItem } from '../types'
 import { getForgeRunner } from './getForgeRunner'
 
-export function getTasksRoutes(forge: FileForgeData.ForgeInfo, program: Command): RouteItem[] {
+export function getTasksRoutes(forge: HyperForgeData.ForgeInfo, program: Command): RouteItem[] {
     const defaultIndex = forge.tasks.findIndex(e => e.default)
     const routes = forge.tasks.map(task => {
         return {
@@ -11,11 +12,15 @@ export function getTasksRoutes(forge: FileForgeData.ForgeInfo, program: Command)
             title: task.name,
             description: task.description,
             async execute() {
-                await getForgeRunner({
+                const runner = await getForgeRunner({
                     forge: forge,
                     program: program,
                     task: task,
                 })
+
+                console.log(chalk.bold(`Starting the ${chalk.cyan(task.name)} task from the ${chalk.cyan(forge.name)} forge\n`))
+                await runner.run()
+                console.log(chalk.green.bold('\nThe execution of your task just finished. Till next time!'))
 
                 process.exit()
             }

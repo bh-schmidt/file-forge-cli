@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { Command } from "commander";
 import { execa } from "execa";
-import { FileForgeData, ForgeRunner, PromptsHelper } from "file-forge";
+import { HyperForgeData, ForgeRunner, PromptsHelper } from "hyper-forge";
 import fs from 'fs-extra';
 import { glob } from "glob";
 import { join } from "path";
@@ -9,8 +9,8 @@ import { pathToFileURL } from "url";
 import { waitForCleanup } from "./cleanUpExecutions";
 
 interface GetForgeRunnerArgs {
-    forge: FileForgeData.ForgeInfo;
-    task: FileForgeData.TaskInfo;
+    forge: HyperForgeData.ForgeInfo;
+    task: HyperForgeData.TaskInfo;
     program: Command;
     rebuild?: boolean
 }

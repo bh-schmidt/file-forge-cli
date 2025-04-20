@@ -1,5 +1,5 @@
 import chalk from "chalk"
-import { FileForgeData } from "file-forge"
+import { HyperForgeData } from "hyper-forge"
 import fs from 'fs-extra'
 import { join, resolve } from "path"
 import { deleteOldRepositories } from "../delete-old-repositories/deleteOldRepositories"
@@ -7,7 +7,7 @@ import { deleteOldRepositories } from "../delete-old-repositories/deleteOldRepos
 export interface InstallOptions {
     directory: string
     replace?: boolean
-    rebuildStrategy?: FileForgeData.RebuildStrategy
+    rebuildStrategy?: HyperForgeData.RebuildStrategy
 }
 
 export async function installForgeDirectory(options: InstallOptions) {
@@ -19,8 +19,8 @@ export async function installForgeDirectory(options: InstallOptions) {
         return false
     }
 
-    const config = await FileForgeData.readConfig()
-    const forge = await FileForgeData.readForgeDir(directory)
+    const config = await HyperForgeData.readConfig()
+    const forge = await HyperForgeData.readForgeDir(directory)
     if (!forge) {
         console.log(chalk.red(`No forge found in this directory`))
         return false
@@ -45,7 +45,7 @@ export async function installForgeDirectory(options: InstallOptions) {
     }
 
     await deleteOldRepositories(config)
-    await FileForgeData.saveConfig(config)
+    await HyperForgeData.saveConfig(config)
 
     return true
 }

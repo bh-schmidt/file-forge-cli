@@ -1,7 +1,7 @@
-import { FileForgeData, GlobHelper } from "file-forge";
+import { HyperForgeData, GlobHelper } from "hyper-forge";
 
-export async function getAvailableForges(repository: FileForgeData.ClonedRepositories, config: FileForgeData.ConfigObject) {
-    const clonePath = FileForgeData.getGitForgesPath(repository.id)
+export async function getAvailableForges(repository: HyperForgeData.ClonedRepositories, config: HyperForgeData.ConfigObject) {
+    const clonePath = HyperForgeData.getGitForgesPath(repository.id)
     const rootForge = await GlobHelper.exists('package.json', { cwd: clonePath })
     const foundPaths: string[] = []
 
@@ -19,9 +19,9 @@ export async function getAvailableForges(repository: FileForgeData.ClonedReposit
         }
     }
 
-    const availableForges: FileForgeData.ForgeInfo[] = []
+    const availableForges: HyperForgeData.ForgeInfo[] = []
     for (const path of foundPaths) {
-        const forge = await FileForgeData.readForgeDir(path)
+        const forge = await HyperForgeData.readForgeDir(path)
         if (!forge) {
             continue
         }

@@ -1,4 +1,4 @@
-import { FileForgeData, PromptsHelper } from 'file-forge'
+import { HyperForgeData, PromptsHelper } from 'hyper-forge'
 import fs from 'fs-extra'
 import { join } from 'path'
 import chalk from "chalk"
@@ -6,8 +6,8 @@ import { resolve } from "path"
 import { deleteOldRepositories } from "../delete-old-repositories/deleteOldRepositories"
 
 export async function installForgeDirectoryPrompt() {
-    const config = await FileForgeData.readConfig()
-    let forge: FileForgeData.ForgeInfo = undefined!
+    const config = await HyperForgeData.readConfig()
+    let forge: HyperForgeData.ForgeInfo = undefined!
 
     const answers = await PromptsHelper.promptWithConfirmation([
         {
@@ -34,7 +34,7 @@ export async function installForgeDirectoryPrompt() {
                         return 'The package.json has no name'
                     }
 
-                    forge = (await FileForgeData.readForgeDir(dir))!
+                    forge = (await HyperForgeData.readForgeDir(dir))!
                     if (!forge) {
                         return 'No forge found in this directory'
                     }
@@ -70,7 +70,7 @@ export async function installForgeDirectoryPrompt() {
                 return false
             },
             message: 'Which will the rebuild strategy be?',
-            choices: FileForgeData.rebuildStrategies.map(e => ({ title: e, value: e }))
+            choices: HyperForgeData.rebuildStrategies.map(e => ({ title: e, value: e }))
         }
     ])
 
@@ -103,7 +103,7 @@ export async function installForgeDirectoryPrompt() {
     }
 
     await deleteOldRepositories(config)
-    await FileForgeData.saveConfig(config)
+    await HyperForgeData.saveConfig(config)
 
     return true
 }

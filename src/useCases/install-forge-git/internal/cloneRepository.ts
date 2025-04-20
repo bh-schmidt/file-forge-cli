@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { execa } from "execa";
-import { FileForgeData } from "file-forge";
+import { HyperForgeData } from "hyper-forge";
 import fs from 'fs-extra';
 
 interface CloneOptions {
@@ -9,7 +9,7 @@ interface CloneOptions {
     commit?: string
 }
 
-export async function cloneRepository(options: CloneOptions, config: FileForgeData.ConfigObject) {
+export async function cloneRepository(options: CloneOptions, config: HyperForgeData.ConfigObject) {
     let repository = config.repositories.find(repo => {
         if (repo.repo !== options.repository)
             return false
@@ -24,8 +24,8 @@ export async function cloneRepository(options: CloneOptions, config: FileForgeDa
         return repository
 
     const repositoryId = crypto.randomUUID()
-    const gitPath = FileForgeData.getGitForgesPath()
-    const clonePath = FileForgeData.getGitForgesPath(repositoryId)
+    const gitPath = HyperForgeData.getGitForgesPath()
+    const clonePath = HyperForgeData.getGitForgesPath(repositoryId)
     await fs.ensureDir(gitPath)
 
     const branchFilter = options.branch ?

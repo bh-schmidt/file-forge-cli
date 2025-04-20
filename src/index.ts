@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import chalk from "chalk"
-import { Command, createCommand, Option } from "commander"
-import { FileForgeData } from "file-forge"
+import { Command, Option } from "commander"
+import { GlobHelper, HyperForgeData } from "hyper-forge"
 import { buildRootRoute, runRoute } from "./router"
 import { cleanup } from "./useCases/cleanUpExecutions"
 import { getForgeRunner } from "./useCases/getForgeRunner"
@@ -15,7 +15,7 @@ import { uninstallMissingForges } from "./useCases/uninstall-missing-forges/unin
 readForges()
 cleanup()
 
-const program = new Command('ff')
+const program = new Command('hf')
 
 if (process.argv.length == 2) {
     const root = buildRootRoute(program)
@@ -45,12 +45,12 @@ const list = new Command('list')
 
 const runCommand = new Command('run')
     .description('Run a forge task')
-    .argument('[forge-id]', 'forge')
-    .argument('[task-id]', 'task')
+    .argument('[forge]', 'The id of the forge')
+    .argument('[task]', 'The id of the task')
     .option('--rebuild', 'Rebuilds typescript projects')
     .option('--disable-prompt-confirmation', 'Disables confirmation after prompts')
     .option('-h, --help', 'display help for command')
-    .usage('<forge-id> <task-id> [options]')
+    .usage('<forge> <task> [options]')
     .helpOption(false)
     .helpCommand(false)
     .action(async (forgeId, taskId) => {
@@ -108,7 +108,7 @@ const runCommand = new Command('run')
 
 const uninstallCommand = new Command('uninstall')
     .description('Uninstalls a forge')
-    .argument('[forge-id]', 'the id of the forge')
+    .argument('[forge]', 'The id of the forge')
     .option('--missing-directories', 'Uninstall forges whose directories are missing')
     .action(async (forgeId) => {
         const opts = uninstallCommand.opts()
@@ -116,11 +116,11 @@ const uninstallCommand = new Command('uninstall')
             uninstallCommand.error(`error: either 'forge-id' or --missing-directories should be informed`)
         }
 
-        if (forgeId){
+        if (forgeId) {
             await uninstallForge(forgeId)
         }
 
-        if(opts.missingDirectories){
+        if (opts.missingDirectories) {
             await uninstallMissingForges()
         }
     })
@@ -131,7 +131,7 @@ const installCommand = new Command('install')
 installCommand.addCommand(
     new Command('git')
         .description('Install a forge stored in a git repository')
-        .argument('<forge-ids...>', 'The ids of the forges to install or * to install every forge in the repository')
+        .argument('<forges...>', 'The ids of the forges to install or * to install every forge in the repository')
         .requiredOption('-r, --repository <repository>', 'Repository of the forge/forges')
         .option('-b, --branch <branch>', 'Branch of the forge')
         .option('-c, --commit <commit>', 'Commit of the forge')
@@ -140,10 +140,10 @@ installCommand.addCommand(
             styleUsage() {
                 return `
   Install every forge in the repository
-    ff install git * -r https://example.com/
+    hf install git * -r https://example.com/
 
   Install pre-selected forges in the repository
-    ff install git my-forge1 my-forge2 -r https://example.com/`
+    hf install git my-forge1 my-forge2 -r https://example.com/`
             },
         })
         .action(async (forgeIds, options) => {
@@ -164,7 +164,7 @@ installCommand.addCommand(
         .option('--replace', 'Replaces the current existing forge')
         .addOption(
             new Option('--rebuild-strategy <strategy>', 'Sets the strategy to decide whether to rebuild the forge or not')
-                .choices(FileForgeData.rebuildStrategies)
+                .choices(HyperForgeData.rebuildStrategies)
         )
         .action(async (dir, options) => {
             await installForgeDirectory({
@@ -187,10 +187,10 @@ await program
         styleUsage() {
             return `
   Run the console interface
-    ff
+    hf
 
   Run the specified command
-    ff <command> [options]`
+    hf <command> [options]`
         },
         subcommandTerm(cmd) {
             return cmd.name()

@@ -1,10 +1,10 @@
-import { FileForgeData } from "file-forge"
+import { HyperForgeData } from "hyper-forge"
 
-let readForgesPromise: Promise<FileForgeData.ForgeInfo[]> | undefined = undefined
-let forges: FileForgeData.ForgeInfo[] | undefined
+let readForgesPromise: Promise<HyperForgeData.ForgeInfo[]> | undefined = undefined
+let forges: HyperForgeData.ForgeInfo[] | undefined
 
 export async function readForges() {
-    const promise = FileForgeData.readForges()
+    const promise = HyperForgeData.readForges()
     readForgesPromise = promise
 
     forges = await promise

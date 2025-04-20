@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { AutoCompleteMatcher, PromptsHelper } from 'file-forge';
+import { AutoCompleteMatcher, PromptsHelper } from 'hyper-forge';
 import prompts, { Choice } from "prompts";
 import { Route, RouteItem } from "./types";
 import { getForgesRoutes } from "./useCases/getForgesRoutes";
@@ -9,6 +9,7 @@ import { uninstallForge } from "./useCases/uninstall-forge/uninstallForge";
 import { installForgeDirectoryPrompt } from "./useCases/install-forge-directory-prompt/installForgeDirectoryPrompt";
 import { getMissingForgesIds } from "./useCases/get-missing-forges-ids/getMissingForgesIds";
 import { uninstallMissingForges } from "./useCases/uninstall-missing-forges/uninstallMissingForges";
+import chalk from "chalk";
 
 export function buildRootRoute(program: Command): Route {
     return {
@@ -85,6 +86,16 @@ export function buildRootRoute(program: Command): Route {
                             id: f.id,
                             title: name,
                             async execute() {
+                                const { confirmation } = await PromptsHelper.prompt({
+                                    name: 'confirmation',
+                                    type: 'confirm',
+                                    message: `Uninstall forge ${chalk.red(f.id)}?`
+                                })
+
+                                if (!confirmation) {
+                                    return
+                                }
+
                                 await uninstallForge(f.id)
                                 await readForges()
                             }
@@ -128,10 +139,7 @@ export async function runRoute(route: Route) {
                 return await AutoCompleteMatcher.wildcardMatch(input, choices)
             },
             hint: route.type == 'select' ?
-                `
-Navigation: [arrow-keys, j, k]
-Submit:     [enter]
-Go back:    [ctrl+c]` :
+                `nav: [↑, ↓, j, k] submit: [enter] back: [ctrl+c]` :
                 undefined
         })
 
