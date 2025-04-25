@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { Command } from "commander";
 import { execa } from "execa";
-import { HyperForgeData, ForgeRunner, PromptsHelper } from "hyper-forge";
+import { HyperForgeData, ForgeRunner, PromptsHelper, Forge } from "hyper-forge";
 import fs from 'fs-extra';
 import { glob } from "glob";
 import { join } from "path";
@@ -93,11 +93,13 @@ export async function getForgeRunner({ forge, task, program, rebuild }: GetForge
         console.log(`\texport default createForge()`)
     }
 
-    const runner = await module.default.buildRunner({
+    const instance = module.default as Forge
+    const runner = await instance.buildRunner({
         program: program,
         targetDir: process.cwd(),
         rootDir: forge.directory,
-        taskName: task.id
+        forgeId: forge.id,
+        taskId: task.id
     })
 
     if (!('run' in runner)) {

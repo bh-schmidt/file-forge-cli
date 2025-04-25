@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import chalk from "chalk"
-import { Command, Option } from "commander"
-import { GlobHelper, HyperForgeData } from "hyper-forge"
+import { Argument, Command, Option } from "commander"
+import { ConfigHandler, HyperForgeData } from "hyper-forge"
 import { buildRootRoute, runRoute } from "./router"
 import { cleanup } from "./useCases/cleanUpExecutions"
 import { getForgeRunner } from "./useCases/getForgeRunner"
@@ -16,12 +16,6 @@ readForges()
 cleanup()
 
 const program = new Command('hf')
-
-if (process.argv.length == 2) {
-    const root = buildRootRoute(program)
-    await runRoute(root)
-    process.exit()
-}
 
 const list = new Command('list')
     .description('Lists all installed forges and its tasks')
@@ -43,21 +37,26 @@ const list = new Command('list')
         }
     })
 
+let commandRunning = false
 const runCommand = new Command('run')
     .description('Run a forge task')
     .argument('[forge]', 'The id of the forge')
     .argument('[task]', 'The id of the task')
     .option('--rebuild', 'Rebuilds typescript projects')
+    .option('--disable-prompts', 'Disables prompts')
     .option('--disable-prompt-confirmation', 'Disables confirmation after prompts')
+    .option('--disable-saving', 'Disables saving config')
     .option('-h, --help', 'display help for command')
     .usage('<forge> <task> [options]')
     .helpOption(false)
     .helpCommand(false)
+    .allowExcessArguments()
+    .allowUnknownOption()
     .action(async (forgeId, taskId) => {
-        runCommand.configureHelp({
-            sortOptions: true,
-            sortSubcommands: true
-        })
+        if (commandRunning)
+            return
+
+        commandRunning = true
 
         const opts = runCommand.opts()
         if (!taskId && opts.help) {
@@ -100,6 +99,8 @@ const runCommand = new Command('run')
         if (opts.help) {
             runCommand.help()
         }
+
+        await program.exitOverride().parseAsync()
 
         console.log(chalk.bold(`Starting the ${chalk.cyan(task.name)} task from the ${chalk.cyan(forge.name)} forge\n`))
         runner.run()
@@ -175,11 +176,106 @@ installCommand.addCommand(
         })
 )
 
+const config = new Command('config')
+    .description('Shows, sets or deletes config values of the current directory')
+
+const getConfig = new Command('get')
+const setConfig = new Command('set')
+const deleteConfig = new Command('delete')
+config
+    .addCommand(getConfig)
+    .addCommand(setConfig)
+    .addCommand(deleteConfig)
+
+getConfig
+    .argument('<key>', 'The key of the config')
+    .addOption(
+        new Option('--scope <scope>', 'The scope of the config')
+            .choices(['task', 'forge', 'project'])
+    )
+    .option('--forge <id>', 'The id of the forge in which the task belongs')
+    .option('--task <id>', 'The id of the task')
+    .option('--recursive', 'Also merges values with parent configs.')
+    .action(async (key, options) => {
+        if (!options.forge && (!options.scope || options.scope == 'task' || options.scope == 'forge')) {
+            program.error('forge id is required')
+        }
+
+        if (!options.task && (!options.scope || options.scope == 'task')) {
+            program.error('task id is required')
+        }
+
+        const value = await ConfigHandler.getConfig({
+            directory: process.cwd(),
+            key,
+            scope: options.scope,
+            forgeId: options.forge,
+            taskId: options.task,
+            recursive: options.recursive
+        })
+        console.log(value)
+    })
+
+setConfig
+    .addArgument(
+        new Argument('<scope>', 'The scope of the config')
+            .choices(['task', 'forge', 'project'])
+    )
+    .argument('<key>', 'The key of the config')
+    .argument('<value>', 'The value to set in the config')
+    .option('--forge <id>', 'The id of the forge in which the task belongs')
+    .option('--task <id>', 'The id of the task')
+    .option('--as-json', 'Parses the value as a json')
+    .action(async (scope, key, value, opts) => {
+        if (!opts.forge && (scope == 'task' || scope == 'forge')) {
+            program.error('forge id is required')
+        }
+
+        if (!opts.task && (scope == 'task')) {
+            program.error('task id is required')
+        }
+
+        await ConfigHandler.setConfig({
+            directory: process.cwd(),
+            key: key,
+            scope: scope,
+            value: value,
+            forgeId: opts.forge,
+            taskId: opts.task
+        })
+    })
+
+deleteConfig
+    .addArgument(
+        new Argument('<scope>', 'The scope of the config')
+            .choices(['task', 'forge', 'project'])
+    )
+    .argument('<key>', 'The key of the config')
+    .option('--forge <id>', 'The id of the forge in which the task belongs')
+    .option('--task <id>', 'The id of the task')
+    .action(async (scope, key, opts) => {
+        if (!opts.forge && (scope == 'task' || scope == 'forge')) {
+            program.error('forge id is required')
+        }
+
+        if (!opts.task && (scope == 'task')) {
+            program.error('task id is required')
+        }
+        await ConfigHandler.deleteConfig({
+            directory: process.cwd(),
+            key: key,
+            scope: scope,
+            forgeId: opts.forge,
+            taskId: opts.task
+        })
+    })
+
 await program
     .addCommand(list)
     .addCommand(runCommand)
     .addCommand(installCommand)
     .addCommand(uninstallCommand)
+    .addCommand(config)
     .helpCommand(false)
     .configureHelp({
         sortOptions: true,
@@ -195,5 +291,9 @@ await program
         subcommandTerm(cmd) {
             return cmd.name()
         }
+    })
+    .action(async () => {
+        const root = buildRootRoute(program)
+        await runRoute(root)
     })
     .parseAsync()
